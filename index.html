@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Algorithm Selector</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #ffe6f0;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .container {
+        background-color: #fff0f6;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+    }
+    h1 {
+        color: #d63384;
+        margin-bottom: 20px;
+    }
+    p {
+        margin: 10px 0;
+        color: #6f2c91;
+    }
+    select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        box-sizing: border-box;
+        border: 1px solid #f5c2e7;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+    button {
+        background-color: #d63384;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 15px;
+    }
+    button:hover {
+        background-color: #c2185b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Select an Algorithm</h1>
+    <form id="mainForm">
+      <p>Choose a category:</p>
+      <select id="mainSelect" name="category" required>
+        <option value="" disabled selected>Select...</option>
+        <option value="disk">Disk Scheduling</option>
+        <option value="page">Page Replacement</option>
+        <option value="banker">Banker's Algorithm</option>
+      </select>
+      <button type="submit">Next</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("mainForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const category = document.getElementById("mainSelect").value;
+      window.location.href = `next.html?category=${category}`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Select Specific Algorithm</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #ffe6f0;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .container {
+        background-color: #fff0f6;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+    }
+    h1 {
+        color: #d63384;
+        margin-bottom: 20px;
+    }
+    p {
+        margin: 10px 0;
+        color: #6f2c91;
+    }
+    select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        box-sizing: border-box;
+        border: 1px solid #f5c2e7;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+    button {
+        background-color: #d63384;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 15px;
+    }
+    button:hover {
+        background-color: #c2185b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Select Specific Algorithm</h1>
+    <div id="selectionArea">
+      <!-- JS will populate content here -->
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category");
+    const selectionArea = document.getElementById("selectionArea");
+
+    function createDropdown(label, options) {
+      const html = `
+        <p>${label}</p>
+        <select id="algoSelect" required>
+          <option value="" disabled selected>Select...</option>
+          ${options.map(opt => `<option value="${opt.link}">${opt.name}</option>`).join("")}
+        </select>
+        <button onclick="goToAlgorithm()">Go</button>
+      `;
+      selectionArea.innerHTML = html;
+    }
+
+    function goToAlgorithm() {
+      const selected = document.getElementById("algoSelect").value;
+      if (selected) {
+        window.location.href = selected;
+      }
+    }
+
+    if (category === "disk") {
+      createDropdown("Choose Disk Scheduling Algorithm:", [
+        { name: "FCFS", link: "fcfs.html" },
+        { name: "SSTF", link: "sstf.html" },
+        { name: "SCAN", link: "scan.html" },
+        { name: "LOOK", link: "look.html" },
+        { name: "C-SCAN", link: "cscan.html" },
+        { name: "C-LOOK", link: "clook.html" }
+      ]);
+    } else if (category === "page") {
+      createDropdown("Choose Page Replacement Algorithm:", [
+        { name: "FIFO", link: "fifo.html" },
+        { name: "LRU", link: "lru.html" },
+        { name: "Optimal", link: "optimal.html" }
+      ]);
+    } else if (category === "banker") {
+      selectionArea.innerHTML = `
+        <p>Banker's Algorithm Selected</p>
+        <button onclick="window.location.href='banker.html'">Go to Banker's Algorithm</button>
+      `;
+    } else {
+      selectionArea.innerHTML = `<p style="color: red;">Invalid selection.</p>`;
+    }
+  </script>
+</body>
+</html>

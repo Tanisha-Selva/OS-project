@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<head>
+    <title>Banker's Algorithm</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffe6f0;  /* soft pink background */
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background-color: #fff0f6;  /* lighter pink card */
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #d63384; 
+        }
+        p {
+            margin: 10px 0;
+            color: #6f2c91; 
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #f5c2e7;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        button {
+            background-color: #d63384;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #c2185b; 
+        }
+        pre {
+            background-color: #ffe6f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            color: #6f2c91; 
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <h1> Banker's Algorithm </h1>
+
+        <p>Number of Processes:
+            <input type="number" id="numP" >
+        </p>
+
+        <p>Number of Resources:
+            <input type="number" id="numR" >
+        </p>
+
+        <p>Allocation Matrix (comma-separated rows, space-separated values, e.g., "0 1 0,2 0 0"):
+            <input type="text" id="alloc" >
+        </p>
+
+        <p>Max Matrix (same format):
+            <input type="text" id="max" >
+        </p>
+
+        <p>Available Resources (space-separated):
+            <input type="text" id="avail" >
+        </p>
+
+        <button onclick="checkSafety()">Check Safe State</button>
+
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        function parseMatrix(text) {
+            return text.split(',').map(row => row.trim().split(' ').map(Number));
+        }
+
+        function checkSafety() {
+            const n = parseInt(document.getElementById('numP').value);
+            const m = parseInt(document.getElementById('numR').value);
+            const alloc = parseMatrix(document.getElementById('alloc').value);
+            const max = parseMatrix(document.getElementById('max').value);
+            const avail = document.getElementById('avail').value.trim().split(' ').map(Number);
+
+            const need = [];
+            for (let i = 0; i < n; i++) {
+                need[i] = [];
+                for (let j = 0; j < m; j++) {
+                    need[i][j] = max[i][j] - alloc[i][j];
+                }
+            }
+
+            const finish = Array(n).fill(false);
+            const work = [...avail];
+            const safeSeq = [];
+
+            let found;
+            do {
+                found = false;
+                for (let i = 0; i < n; i++) {
+                    if (!finish[i] && need[i].every((val, j) => val <= work[j])) {
+                        for (let j = 0; j < m; j++) work[j] += alloc[i][j];
+                        finish[i] = true;
+                        safeSeq.push('P' + i);
+                        found = true;
+                    }
+                }
+            } while (found);
+
+            const output = document.getElementById('output');
+            output.textContent = 'Need Matrix:\n' + need.map(r => r.join(' ')).join('\n') + '\n\n';
+
+            if (finish.every(f => f)) {
+                output.textContent += 'System is SAFE.\nSafe sequence: ' + safeSeq.join(' → ');
+            } else {
+                output.textContent += 'System is UNSAFE! Potential deadlock.';
+            }
+        }
+    </script>
+</body>
+</html>

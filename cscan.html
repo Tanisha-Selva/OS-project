@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>C-SCAN Disk Scheduling</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff0f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 60px auto;
+      text-align: center;
+    }
+
+    h2, h3 {
+      color: #d63384;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #c1285b;
+      color: #ffe6f0;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #d63384;
+    }
+
+    #output {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-left: 4px solid #007bff;
+      margin-top: 20px;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>C-SCAN Disk Scheduling</h2>
+
+    <label>Enter head position:</label>
+    <input type="number" id="head" placeholder="e.g. 50">
+
+    <label>Enter disk size (max track number):</label>
+    <input type="number" id="diskSize" placeholder="e.g. 200">
+
+    <label>Enter request queue (comma separated):</label>
+    <input type="text" id="requests" placeholder="e.g. 82,170,43,140,24,16,190">
+
+    <label>Select direction:</label>
+    <select id="direction">
+      <option value="right" selected>Right</option>
+      <option value="left">Left</option>
+    </select>
+
+    <button onclick="runCSCAN()">Run C-SCAN</button>
+
+    <h3>Result:</h3>
+    <p id="output"></p>
+  </div>
+
+  <script>
+    function runCSCAN() {
+      let head = parseInt(document.getElementById("head").value);
+      let diskSize = parseInt(document.getElementById("diskSize").value);
+      let input = document.getElementById("requests").value;
+      let direction = document.getElementById("direction").value;
+      let requests = input.split(',').map(Number).filter(n => !isNaN(n));
+
+      let totalSeek = 0;
+      let sequence = [];
+      let current = head;
+
+      // Add disk ends
+      requests.push(0);
+      requests.push(diskSize - 1);
+
+      let left = requests.filter(r => r < head).sort((a, b) => a - b);
+      let right = requests.filter(r => r >= head).sort((a, b) => a - b);
+
+      if (direction === "right") {
+        for (let i = 0; i < right.length; i++) {
+          sequence.push(right[i]);
+          totalSeek += Math.abs(current - right[i]);
+          current = right[i];
+        }
+        // Jump to beginning
+        totalSeek += Math.abs(current - 0);
+        current = 0;
+        for (let i = 0; i < left.length; i++) {
+          sequence.push(left[i]);
+          totalSeek += Math.abs(current - left[i]);
+          current = left[i];
+        }
+      } else {
+        // C-SCAN in left direction
+        for (let i = left.length - 1; i >= 0; i--) {
+          sequence.push(left[i]);
+          totalSeek += Math.abs(current - left[i]);
+          current = left[i];
+        }
+        // Jump to end
+        totalSeek += Math.abs(current - (diskSize - 1));
+        current = diskSize - 1;
+        for (let i = right.length - 1; i >= 0; i--) {
+          sequence.push(right[i]);
+          totalSeek += Math.abs(current - right[i]);
+          current = right[i];
+        }
+      }
+
+      document.getElementById("output").innerText =
+        "Seek Sequence: " + [head, ...sequence].join(" → ") + "\n" +
+        "Total Seek Time: " + totalSeek;
+    }
+  </script>
+
+</body>
+</html>

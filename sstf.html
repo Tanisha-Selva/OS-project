@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SSTF Disk Scheduling</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffe6f0;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background-color: #fff0f6;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #d63384;
+    }
+    p {
+      margin: 10px 0;
+      color: #6f2c91;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      border: 1px solid #f5c2e7;
+      border-radius: 4px;
+      background-color: #fff;
+    }
+    button {
+      background-color: #d63384;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #c2185b;
+    }
+    pre {
+      background-color: #ffe6f0;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 15px;
+      white-space: pre-wrap;
+      color: #6f2c91;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SSTF Disk Scheduling</h1>
+    <p>Enter Initial Head Position:</p>
+    <input type="number" id="head" placeholder="e.g., 50">
+
+    <p>Enter Request Queue (comma-separated):</p>
+    <input type="text" id="queue" placeholder="e.g., 82,170,43,140,24,16,190">
+
+    <button onclick="calculateSSTF()">Calculate</button>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function calculateSSTF() {
+      const head = parseInt(document.getElementById("head").value);
+      const input = document.getElementById("queue").value;
+      const requests = input.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+      let seekSequence = [];
+      let totalHeadMovement = 0;
+      let currentHead = head;
+      let queue = [...requests];
+      
+      while (queue.length > 0) {
+        let closestIndex = 0;
+        let closestDistance = Math.abs(currentHead - queue[0]);
+        
+        for (let i = 1; i < queue.length; i++) {
+          let dist = Math.abs(currentHead - queue[i]);
+          if (dist < closestDistance) {
+            closestDistance = dist;
+            closestIndex = i;
+          }
+        }
+
+        totalHeadMovement += closestDistance;
+        currentHead = queue[closestIndex];
+        seekSequence.push(currentHead);
+        queue.splice(closestIndex, 1);
+      }
+
+      const output = `
+Initial Head Position: ${head}
+Request Sequence: ${requests.join(", ")}
+Seek Sequence: ${seekSequence.join(" → ")}
+Total Head Movement: ${totalHeadMovement}
+      `;
+
+      document.getElementById("output").innerText = output;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Optimal Page Replacement</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff0f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      max-width: 900px;
+      margin: 60px auto;
+      text-align: center;
+    }
+
+    h2 {
+      color: #000;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #d63384;
+      color: #fff;
+      padding: 10px 25px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #c1285b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ffe6f0;
+      color: #d63384;
+    }
+
+    #summary {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #ffe6f0;
+      color: #d63384;
+      font-weight: bold;
+      border-radius: 8px;
+      text-align: left;
+      font-size: 16px;
+    }
+
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Optimal Page Replacement</h2>
+
+    <label for="frames">Number of Frames:</label>
+    <input type="number" id="frames" placeholder="e.g. 4">
+
+    <label for="referenceString">Page Reference String (comma separated):</label>
+    <input type="text" id="referenceString" placeholder="e.g. 3,1,2,5,1,2,6,3,1,2">
+
+    <button onclick="runOptimal()">Run Optimal</button>
+
+    <h3>Frame Table:</h3>
+    <div id="output"></div>
+    <div id="summary"></div>
+  </div>
+
+  <script>
+    function runOptimal() {
+      const frameCount = parseInt(document.getElementById("frames").value.trim());
+      const refInput = document.getElementById("referenceString").value.trim();
+      const pages = refInput.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+
+      const outputDiv = document.getElementById("output");
+      const summary = document.getElementById("summary");
+
+      if (isNaN(frameCount) || pages.length === 0) {
+        alert("Please enter valid frame count and reference string.");
+        return;
+      }
+
+      let frames = [];
+      let hits = 0, misses = 0;
+      let states = Array.from({ length: frameCount }, () => []);
+      let hitMissRow = [];
+
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+
+        if (frames.includes(page)) {
+          hits++;
+          hitMissRow.push("Hit");
+        } else {
+          misses++;
+          hitMissRow.push("Miss");
+
+          if (frames.length < frameCount) {
+            frames.push(page);
+          } else {
+            // Find the page that is used farthest in the future
+            let farthest = -1;
+            let indexToReplace = -1;
+
+            for (let j = 0; j < frames.length; j++) {
+              let nextUse = pages.slice(i + 1).indexOf(frames[j]);
+              if (nextUse === -1) {
+                indexToReplace = j;
+                break;
+              }
+              if (nextUse > farthest) {
+                farthest = nextUse;
+                indexToReplace = j;
+              }
+            }
+
+            frames[indexToReplace] = page;
+          }
+        }
+
+        for (let f = 0; f < frameCount; f++) {
+          states[f][i] = frames[f] !== undefined ? frames[f] : "";
+        }
+      }
+
+      // Build table
+      let tableHTML = "<table><thead><tr><th>Page</th>";
+      pages.forEach(p => tableHTML += `<th>${p}</th>`);
+      tableHTML += "</tr></thead><tbody>";
+
+      for (let f = 0; f < frameCount; f++) {
+        tableHTML += `<tr><td>f${f + 1}</td>`;
+        states[f].forEach(v => tableHTML += `<td>${v}</td>`);
+        tableHTML += "</tr>";
+      }
+
+      // Hit/Miss row
+      tableHTML += `<tr><td class="bold">Hit/Miss</td>`;
+      hitMissRow.forEach(hm => tableHTML += `<td>${hm}</td>`);
+      tableHTML += "</tr></tbody></table>";
+
+      outputDiv.innerHTML = tableHTML;
+
+      const hitRatio = (hits / pages.length).toFixed(2);
+      const missRatio = (misses / pages.length).toFixed(2);
+
+      summary.innerHTML = `
+        Total Hits: ${hits}<br>
+        Total Misses: ${misses}<br>
+        Total Page Faults: ${misses}<br>
+        Hit Ratio: ${hitRatio}<br>
+        Miss Ratio: ${missRatio}
+      `;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FIFO Page Replacement</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff0f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 1000px;
+      margin: 60px auto;
+      text-align: center;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      text-align: left;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #c1285b;
+      color: #ffe6f0;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #d63384;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ffe6f0;
+      color: #c1285b;
+    }
+
+    #hitsMissesList {
+      margin-top: 20px;
+      text-align: left;
+      font-size: 16px;
+    }
+
+    #summary {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: left;
+      background-color: #ffe6f0; /* Same color as the table header */
+      color: #c1285b; /* Text color for the summary */
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    /* Initially hide the frame table */
+    #output {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>FIFO Page Replacement</h2>
+
+    <label for="frames">Number of Frames:</label>
+    <input type="number" id="frames" placeholder="e.g. 4">
+
+    <label for="referenceString">Page Reference String (comma separated):</label>
+    <input type="text" id="referenceString" placeholder="e.g. 3,1,2,5,1,2,6,3,1,2">
+
+    <button onclick="runFIFO()">Run FIFO</button>
+
+    <h3>Frame Table:</h3>
+    <div id="output"></div>
+
+    <div id="hitsMissesList"></div>
+    <div id="summary"></div>
+  </div>
+
+  <script>
+    function runFIFO() {
+      const framesInput = document.getElementById("frames").value.trim();
+      const refInput = document.getElementById("referenceString").value.trim();
+      const outputDiv = document.getElementById("output");
+      const summary = document.getElementById("summary");
+
+      if (framesInput === "" || refInput === "") {
+        alert("Please enter both the number of frames and the reference string.");
+        return;
+      }
+
+      const frameCount = parseInt(framesInput);
+      const references = refInput.split(',').map(s => s.trim()).filter(s => s !== '').map(Number);
+
+      if (isNaN(frameCount) || references.some(isNaN)) {
+        alert("Please enter valid numbers only.");
+        return;
+      }
+
+      let frames = [];
+      let queue = [];
+      let hits = 0;
+      let misses = 0;
+      let pageFaults = 0;  // Page faults count
+      let states = Array.from({ length: frameCount }, () => []);
+      let hitMissRow = Array.from({ length: references.length }, () => "");
+
+      for (let i = 0; i < references.length; i++) {
+        const page = references[i];
+        let result;
+
+        if (frames.includes(page)) {
+          result = "Hit";
+          hits++;
+        } else {
+          result = "Miss";
+          misses++;
+          pageFaults++;  // Increment page fault when there's a miss
+          if (frames.length < frameCount) {
+            frames.push(page);
+            queue.push(page);
+          } else {
+            const removed = queue.shift();
+            const index = frames.indexOf(removed);
+            frames[index] = page;
+            queue.push(page);
+          }
+        }
+
+        hitMissRow[i] = result;
+
+        for (let f = 0; f < frameCount; f++) {
+          states[f][i] = frames[f] !== undefined ? frames[f] : "";
+        }
+      }
+
+      let tableHTML = "<table><thead><tr><th>Page</th>";
+      references.forEach(p => tableHTML += `<th>${p}</th>`);
+      tableHTML += "</tr></thead><tbody>";
+
+      for (let f = 0; f < frameCount; f++) {
+        tableHTML += `<tr><td>f${f + 1}</td>`;
+        states[f].forEach(value => tableHTML += `<td>${value}</td>`);
+        tableHTML += "</tr>";
+      }
+
+      // Add the Hit/Miss row at the bottom
+      tableHTML += `<tr><td><b>Hit/Miss</b></td>`;
+      hitMissRow.forEach(status => tableHTML += `<td>${status}</td>`);
+      tableHTML += "</tr>";
+
+      tableHTML += "</tbody></table>";
+      outputDiv.innerHTML = tableHTML;
+
+      // Show the frame table after it's generated
+      outputDiv.style.display = "block";
+
+      // Summary
+      const hitRatio = (hits / references.length).toFixed(2);
+      const missRatio = (misses / references.length).toFixed(2);
+      summary.innerHTML = `<b>Total Hits:</b> ${hits} <br>
+                           <b>Total Misses:</b> ${misses} <br>
+                           <b>Total Page Faults:</b> ${pageFaults} <br> <!-- Page Faults -->
+                           <b>Hit Ratio:</b> ${hitRatio} <br>
+                           <b>Miss Ratio:</b> ${missRatio}`;
+    }
+  </script>
+
+</body>
+</html>
+
